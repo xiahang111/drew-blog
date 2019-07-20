@@ -1,0 +1,33 @@
+spring:
+  mvc:
+    view:
+      prefix: /
+      suffix: .html
+    static-path-pattern: /static/**
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 0
+      max-file-size: 100MB
+      max-request-size: 100MB
+  application:
+    name: boot-web-service
+  datasource:
+    url: jdbc:mysql://106.52.216.137:3306/drew_db?useUnicode=true&characterEncoding=UTF-8&userSSL=false
+    username: root
+    password: root
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  type-handlers-package: com.drew.handler
+  type-aliases-package: com.drew.item.pojo
+
+
+
+

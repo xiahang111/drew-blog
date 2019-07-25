@@ -1,11 +1,15 @@
 package com.drew.service;
 
+import com.drew.config.GlobalConfig;
 import com.drew.item.dto.ArticleBlogDTO;
 import com.drew.item.pojo.DrewArticleComment;
 import com.drew.item.pojo.DrewArticleContent;
 import com.drew.item.pojo.DrewArticleInfo;
 import com.drew.mapper.*;
 import com.drew.utils.DateUtils;
+import com.drew.utils.RedisUtil;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -34,6 +39,9 @@ public class ArticleContentService {
 
     @Autowired
     private DrewTagMapper drewTagMapper;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     public ArticleBlogDTO getArticleByArticleId(String articleId) {
 
@@ -63,12 +71,23 @@ public class ArticleContentService {
 
     public List<ArticleBlogDTO> getArticles(String categoryId, String sort) {
 
+        //先读缓存
+        if (redisUtil.hasKey(GlobalConfig.ALL_ARTICLES_KEY)){
+
+            return new Gson().fromJson(redisUtil.get(GlobalConfig.ALL_ARTICLES_KEY), new TypeToken<List<ArticleBlogDTO>>(){
+
+            }.getType());
+
+        }
+
         List<ArticleBlogDTO> articleBlogDTOS = new ArrayList<>();
 
         List<DrewArticleInfo> drewArticleInfos;
 
+        long t1 = System.currentTimeMillis();
+
         if (StringUtils.isEmpty(categoryId)) {
-            drewArticleInfos = drewArticleInfoMapper.selectAll();
+            drewArticleInfos = drewArticleInfoMapper.selectAllOrderBydate();
         } else {
             //获取分类下的所有子分类
             List<String> categoryIds = drewCategoryMapper.getIdsByParentId(Long.parseLong(categoryId));
@@ -83,6 +102,9 @@ public class ArticleContentService {
         if (drewArticleComments == null) {
             drewArticleComments = new ArrayList<>();
         }
+
+        long t2 = System.currentTimeMillis();
+        System.out.println("查询花费时间："+ (t2 - t1));
 
         Map<Long, List<DrewArticleContent>> contentMap = drewArticleContents.stream().collect(Collectors.groupingBy(DrewArticleContent::getArticleInfoId));
 
@@ -125,38 +147,47 @@ public class ArticleContentService {
 
         }
 
-        switch (sort) {
+        long t3 = System.currentTimeMillis();
+        System.out.println("封装花费时间："+ (t3 - t2));
 
-            //将结果通过时间排序
-            case "time":
-                Collections.sort(articleBlogDTOS, new Comparator<ArticleBlogDTO>() {
-                    @Override
-                    public int compare(ArticleBlogDTO o1, ArticleBlogDTO o2) {
-                        Date a = DateUtils.stringToDate(o1.getArticleDate());
-                        Date b = DateUtils.stringToDate(o2.getArticleDate());
+//        switch (sort) {
+//
+//            //将结果通过时间排序
+//            case "time":
+//                Collections.sort(articleBlogDTOS, new Comparator<ArticleBlogDTO>() {
+//                    @Override
+//                    public int compare(ArticleBlogDTO o1, ArticleBlogDTO o2) {
+//                        Date a = DateUtils.stringToDate(o1.getArticleDate());
+//                        Date b = DateUtils.stringToDate(o2.getArticleDate());
+//
+//                        if (a.after(b)) {
+//                            return -1;
+//                        } else {
+//                            return 1;
+//                        }
+//                    }
+//                });
+//
+//                break;
+//
+//            case "visitor":
+//                Collections.sort(articleBlogDTOS, new Comparator<ArticleBlogDTO>() {
+//                    @Override
+//                    public int compare(ArticleBlogDTO o1, ArticleBlogDTO o2) {
+//                        return o1.getArticleVisitor() > o2.getArticleVisitor() ? 1 : -1;
+//                    }
+//                });
+//
+//                break;
+//            default:
+//                break;
+//        }
 
-                        if (a.after(b)) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    }
-                });
+        //放入缓存
 
-                break;
+        redisUtil.setEx(GlobalConfig.ALL_ARTICLES_KEY,new Gson().toJson(articleBlogDTOS,new TypeToken<List<ArticleBlogDTO>>(){
 
-            case "visitor":
-                Collections.sort(articleBlogDTOS, new Comparator<ArticleBlogDTO>() {
-                    @Override
-                    public int compare(ArticleBlogDTO o1, ArticleBlogDTO o2) {
-                        return o1.getArticleVisitor() > o2.getArticleVisitor() ? 1 : -1;
-                    }
-                });
-
-                break;
-            default:
-                break;
-        }
+        }.getType()),1, TimeUnit.DAYS);
 
         return articleBlogDTOS;
 

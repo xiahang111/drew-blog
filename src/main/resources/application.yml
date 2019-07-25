@@ -1,4 +1,8 @@
 spring:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
   mvc:
     view:
       prefix: /
@@ -22,6 +26,8 @@ spring:
   thymeleaf:
     cache: false
     prefix: classpath:/templates/
+  cache:
+    type: redis
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

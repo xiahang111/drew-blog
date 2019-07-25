@@ -29,6 +29,7 @@ public interface DrewArticleInfoMapper extends Mapper<DrewArticleInfo> {
             "<foreach collection='categoryIds' item='categoryId' open='(' separator=',' close=')'>",
             "#{categoryId}",
             "</foreach>",
+            "order by article_date desc",
             "</script>"
     })
     List<DrewArticleInfo> selectByCategoryIds(@Param("categoryIds") List<String> categoryIds);

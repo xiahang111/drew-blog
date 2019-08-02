@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import tk.mybatis.mapper.common.Mapper;
 
+import java.util.List;
+
 public interface DrewArticleContentMapper extends Mapper<DrewArticleContent> {
 
 //    @ConstructorArgs({
@@ -19,4 +21,7 @@ public interface DrewArticleContentMapper extends Mapper<DrewArticleContent> {
 
     @Select("select article_info_id,article_content,is_deleted from drew_article_content where article_info_id = #{articleInfoId}")
     DrewArticleContent selectByArticleId(@Param("articleInfoId") Long articleInfoId);
+
+    @Select("SELECT id,article_info_id,LEFT(article_content,300) as article_content FROM drew_article_content")
+    List<DrewArticleContent> selectAllIndexArticle();
 }

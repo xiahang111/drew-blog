@@ -438,6 +438,25 @@ public class DateUtils {
      * @param imonth
      *      要增加或减少的天数
      */
+    public static Date addSceond(Date date, int seconds) {
+        Calendar cd = Calendar.getInstance();
+
+        cd.setTime(date);
+
+        cd.add(Calendar.SECOND, seconds);
+
+        return cd.getTime();
+    }
+
+
+    /**
+     * 在输入日期上增加（+）或减去（-）天数
+     *
+     * @param date
+     *      输入日期
+     * @param imonth
+     *      要增加或减少的天数
+     */
     public static Date addDay(Date date, int iday) {
         Calendar cd = Calendar.getInstance();
 

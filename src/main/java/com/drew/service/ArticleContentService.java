@@ -72,7 +72,7 @@ public class ArticleContentService {
     public List<ArticleBlogDTO> getArticles(String categoryId, String sort) {
 
         //先读缓存
-        if (redisUtil.hasKey(GlobalConfig.ALL_ARTICLES_KEY)){
+        if (redisUtil.hasKey(GlobalConfig.ALL_ARTICLES_KEY+"-"+categoryId)){
 
             return new Gson().fromJson(redisUtil.get(GlobalConfig.ALL_ARTICLES_KEY), new TypeToken<List<ArticleBlogDTO>>(){
 
@@ -87,7 +87,13 @@ public class ArticleContentService {
         long t1 = System.currentTimeMillis();
 
         if (StringUtils.isEmpty(categoryId)) {
-            drewArticleInfos = drewArticleInfoMapper.selectAllOrderBydate();
+
+            switch (sort) {
+                case "visitor" : drewArticleInfos = drewArticleInfoMapper.selectAllOrderByVisitor();break;
+
+                default:drewArticleInfos = drewArticleInfoMapper.selectAllOrderBydate();
+            }
+
         } else {
             //获取分类下的所有子分类
             List<String> categoryIds = drewCategoryMapper.getIdsByParentId(Long.parseLong(categoryId));
@@ -95,7 +101,14 @@ public class ArticleContentService {
             drewArticleInfos = drewArticleInfoMapper.selectByCategoryIds(categoryIds);
         }
 
-        List<DrewArticleContent> drewArticleContents = drewArticleContentMapper.selectAll();
+        long t3 = System.currentTimeMillis();
+        System.out.println("获取全部文章信息查询花费总时间："+ (t3 - t1));
+
+        List<DrewArticleContent> drewArticleContents = drewArticleContentMapper.selectAllIndexArticle();
+
+
+        long t4 = System.currentTimeMillis();
+        System.out.println("获取全部文章内容查询花费总时间："+ (t4 - t3));
 
         List<DrewArticleComment> drewArticleComments = drewArticleCommentMapper.selectAll();
 
@@ -103,8 +116,11 @@ public class ArticleContentService {
             drewArticleComments = new ArrayList<>();
         }
 
+        long t5 = System.currentTimeMillis();
+        System.out.println("获取全部文章评论查询花费总时间："+ (t5 - t4));
+
         long t2 = System.currentTimeMillis();
-        System.out.println("查询花费时间："+ (t2 - t1));
+        System.out.println("查询花费总时间："+ (t2 - t1));
 
         Map<Long, List<DrewArticleContent>> contentMap = drewArticleContents.stream().collect(Collectors.groupingBy(DrewArticleContent::getArticleInfoId));
 
@@ -147,8 +163,8 @@ public class ArticleContentService {
 
         }
 
-        long t3 = System.currentTimeMillis();
-        System.out.println("封装花费时间："+ (t3 - t2));
+        long t6 = System.currentTimeMillis();
+        System.out.println("封装花费时间："+ (t6 - t2));
 
 //        switch (sort) {
 //
@@ -187,7 +203,7 @@ public class ArticleContentService {
 
         redisUtil.setEx(GlobalConfig.ALL_ARTICLES_KEY,new Gson().toJson(articleBlogDTOS,new TypeToken<List<ArticleBlogDTO>>(){
 
-        }.getType()),1, TimeUnit.DAYS);
+        }.getType()),1, TimeUnit.MINUTES);
 
         return articleBlogDTOS;
 

@@ -1,9 +1,13 @@
 package com.drew.controller;
 
 import com.drew.config.GlobalConfig;
+import com.drew.service.SpprCompanyService;
+import com.drew.service.SpprPageService;
 import com.drew.service.VisitCountService;
 import com.drew.single.PageVisitSingleQueue;
+import com.drew.single.SpprCompanySingleQueue;
 import com.drew.thread.PageVisitConsumer;
+import com.drew.thread.SpprCompanyConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +23,12 @@ public class IndexController {
     @Autowired
     private VisitCountService visitCountService;
 
+    @Autowired
+    private SpprPageService spprPageService;
+
+    @Autowired
+    private SpprCompanyService spprCompanyService;
+
     @RequestMapping("/")
     public ModelAndView index(HttpServletResponse response,
                               HttpServletRequest request){
@@ -31,5 +41,8 @@ public class IndexController {
         return new ModelAndView("index");
 
     }
+
+
+
 
 }

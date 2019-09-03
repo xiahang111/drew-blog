@@ -14,7 +14,15 @@ public class GlobalConfig {
 
     public static ExecutorService service = Executors.newSingleThreadExecutor();
 
+    public static ExecutorService fixservice = Executors.newFixedThreadPool(5);
+
     public static AtomicInteger pageVisitConsumerCount = new AtomicInteger(0);
+
+    public static AtomicInteger spprCompanyConsumerCount = new AtomicInteger(0);
+
+    public volatile static Integer spprCompanyCount = 1002668;
+
+
 
     public static final String PRE_ARTICLE_COUNT = "/article/";
 

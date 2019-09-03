@@ -58,5 +58,11 @@ public class PageController {
         return "discussion";
     }
 
+    @RequestMapping("/sppr")
+    public String tosppr(){
+
+        return "sppr-data";
+    }
+
 
 }
